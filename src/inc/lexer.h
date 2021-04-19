@@ -1,7 +1,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-enum token {
+#include <def.h>
+
+enum token_type {
 	UNKNOWN,
 	NEWLINE,
 	NOP,
@@ -44,7 +46,7 @@ enum token {
 	DUBB,
 	MUL,
 	CJNE,
-	SWP,
+	SWAP,
 	DA,
 	CRL,
 	XCH,
@@ -55,10 +57,16 @@ enum token {
 	DB,
 	DW,
 	INCLUDE,
-	BRACE_OPEN,
-	BRACE_CLOSE,
-	DATA,
-	BIT,
 };
+
+struct token {
+	enum token_type type;
+	char *start;
+	u32 length;
+	void *data;
+};
+
+void token_print(struct token *tok);
+struct token token_resolve(char *token, u32 size);
 
 #endif
