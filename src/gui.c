@@ -5,6 +5,9 @@
 #include <parser.h>
 #include <stdio.h>
 #include <string.h>
+#include <syntax.h>
+
+#define BUFFER_SIZE 1024
 
 // Main window
 static GtkWidget *window;
@@ -23,7 +26,7 @@ static char *gui_text_buffer(void)
 
 static void gui_fill_text_view(const char *path)
 {
-	char buf[1024] = { 0 };
+	char buf[BUFFER_SIZE] = { 0 };
 	FILE *test = fopen(path, "r");
 
 	if (!test) {
@@ -43,11 +46,37 @@ static void gui_call_parser(void)
 {
 	char *buf = gui_text_buffer();
 
-	// TODO: Get actual buffer size
-	if (parse(buf, 1024))
+	if (parse(buf, BUFFER_SIZE))
 		gui_show_info("Compiled successfully!");
 
 	g_free(buf);
+}
+
+static void gui_call_syntax_highlighter(void)
+{
+	char *buf = gui_text_buffer();
+
+	syntax_highlight(buf, BUFFER_SIZE);
+
+	g_free(buf);
+}
+
+static void gui_init_highlighter(void)
+{
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	gtk_text_buffer_create_tag(buffer, "instr", "foreground", "#ff0000", NULL);
+	gtk_text_buffer_create_tag(buffer, "regs", "foreground", "#00ff00", NULL);
+}
+
+void gui_highlight(u32 column, u32 line, u32 length, const char *tag_name)
+{
+	GtkTextIter start, end;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+
+	gtk_text_buffer_get_iter_at_line_offset(buffer, &start, line, column);
+	gtk_text_buffer_get_iter_at_line_offset(buffer, &end, line, column + length);
+
+	gtk_text_buffer_apply_tag_by_name(buffer, tag_name, &start, &end);
 }
 
 void gui_show_warning(const char *text)
@@ -125,12 +154,15 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	// Strange text view
 	text_view = gtk_source_view_new();
 	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text_view), TRUE);
+	gtk_source_view_set_auto_indent(GTK_SOURCE_VIEW(text_view), TRUE);
 	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
 
 	gtk_widget_show_all(window);
 
 	// Only for testing purposes
 	gui_fill_text_view("test.asm");
+
+	gui_init_highlighter();
 }
 
 int gui_init(int argc, char *argv[])

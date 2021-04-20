@@ -383,6 +383,7 @@ static u32 parse_line(struct context *ctx, char *str, u32 size)
 		struct token tok = token_resolve(str + str_ind, size - str_ind);
 		if (tok.type == NEWLINE) {
 			ctx->line++;
+			ctx->column = 0;
 			break;
 		}
 
@@ -601,6 +602,14 @@ static u32 parse_line(struct context *ctx, char *str, u32 size)
 	case DATA:
 	case BIT:
 		warnings_add(ctx, "Random non-instruction found");
+		break;
+	case INSTR_START:
+	case INSTR_END:
+	case NUM_START:
+	case NUM_END:
+	case REGS_START:
+	case REGS_END:
+		warnings_add(ctx, "Got enum boundary");
 		break;
 	default:
 		warnings_add(ctx, "Super-unknown instruction");

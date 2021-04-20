@@ -37,8 +37,10 @@ struct token token_resolve(char *str, u32 size)
 
 		if (str[length] == 'h' || str[length] == 'H') {
 			type = HEX_NUM;
+			length++;
 		} else if (str[length] == 'b' || str[length] == 'B') {
 			type = BIN_NUM;
+			length++;
 		} else {
 			type = DEC_NUM;
 		}
@@ -263,8 +265,10 @@ struct token token_resolve(char *str, u32 size)
 			while (ALPHA_NUMERIC(str[length]))
 				length++;
 
-			if (length)
+			if (length) {
 				type = STRING;
+				length++;
+			}
 		}
 	}
 

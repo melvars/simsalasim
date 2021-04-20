@@ -8,6 +8,7 @@ enum token_type {
 	NEWLINE,
 	SPACE,
 
+	INSTR_START,
 	NOP,
 	JBC,
 	JB,
@@ -61,6 +62,7 @@ enum token_type {
 	DATA,
 	BIT,
 	INCLUDE,
+	INSTR_END,
 
 	HASH,
 	DOLLAR,
@@ -71,13 +73,16 @@ enum token_type {
 	COLON,
 	SEMICOLON,
 
+	NUM_START,
 	DEC_NUM,
 	HEX_NUM,
 	BIN_NUM,
+	NUM_END,
 
 	STRING,
 
 	// Registers
+	REGS_START,
 	ACCU,
 	ATR0,
 	ATR1,
@@ -89,6 +94,7 @@ enum token_type {
 	R5,
 	R6,
 	R7,
+	REGS_END,
 };
 
 struct token {
