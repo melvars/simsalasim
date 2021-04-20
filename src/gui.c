@@ -78,16 +78,22 @@ void gui_show_info(const char *text)
 	gtk_widget_destroy(info);
 }
 
-static gboolean key_event_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	UNUSED(widget);
 	UNUSED(data);
-	//	printf("%d\n", event->state);
-	//	printf("%d\n", event->keyval);
-	if (event->state == 20 && event->keyval == 65293) { // TODO: Softcode numbers
-		gui_call_parser();
+
+	if (event->state & GDK_CONTROL_MASK) {
+		if (event->keyval == 's')
+			gui_show_warning("Saving is not yet supported");
+		else if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter)
+			gui_call_parser();
+
 		return TRUE;
 	}
+
+	gui_call_syntax_highlighter();
+
 	return FALSE;
 }
 
@@ -95,12 +101,15 @@ static void gui_activate(GtkApplication *app, gpointer data)
 {
 	UNUSED(data);
 
+	// Initialize window
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "simsalasim");
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
 
-	g_signal_connect(window, "key_press_event", G_CALLBACK(key_event_handler), NULL);
+	// Key press listener
+	g_signal_connect(window, "key_press_event", G_CALLBACK(gui_key_press_handler), NULL);
 
+	// Main container
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
 	gtk_container_add(GTK_CONTAINER(window), box);
 
@@ -116,7 +125,7 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	// Strange text view
 	text_view = gtk_source_view_new();
 	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text_view), TRUE);
-	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 10);
+	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
 
 	gtk_widget_show_all(window);
 
