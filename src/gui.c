@@ -12,6 +12,7 @@
 // Main window
 static GtkWidget *window;
 static GtkWidget *text_view;
+static char filename[1024] = { 0 };
 
 static char *gui_text_buffer(void)
 {
@@ -24,7 +25,14 @@ static char *gui_text_buffer(void)
 	return text; // g_free after use!
 }
 
-static void gui_fill_text_view(const char *path)
+static void gui_fill_text_view(const char *text)
+{
+	GtkSourceBuffer *text_buffer = gtk_source_buffer_new(NULL);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(text_buffer), text, (gint)strlen(text));
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
+}
+
+static void gui_fill_text_view_from_file(const char *path)
 {
 	char buf[BUFFER_SIZE] = { 0 };
 	FILE *test = fopen(path, "r");
@@ -107,14 +115,88 @@ void gui_show_info(const char *text)
 	gtk_widget_destroy(info);
 }
 
+static int gui_save_file(char *fname, char *fdata)
+{
+	FILE *f = fopen(fname, "w");
+	if (f == NULL)
+		return 1;
+	fputs(fdata, f);
+	fclose(f);
+	return 0;
+}
+
+static void gui_show_save_dialog(void)
+{
+	GtkWidget *dialog =
+		gtk_file_chooser_dialog_new("Save File", GTK_WINDOW(window),
+					    GTK_FILE_CHOOSER_ACTION_SAVE, "Cancel",
+					    GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT, NULL);
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+
+	gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
+
+	if (strlen(filename) == 0) {
+		gtk_file_chooser_set_current_folder(chooser, g_get_home_dir());
+		gtk_file_chooser_set_current_name(chooser, "new.asm");
+		int res = gtk_dialog_run(GTK_DIALOG(dialog));
+		if (res == GTK_RESPONSE_ACCEPT) {
+			char *savefile = gtk_file_chooser_get_filename(chooser);
+			strcpy(filename, savefile);
+			char *text = gui_text_buffer();
+			int r = gui_save_file(savefile, text);
+			gtk_widget_destroy(dialog);
+			if (r == 0)
+				gui_show_info("File saved!");
+			else
+				gui_show_warning("Could not save file!");
+			g_free(savefile);
+			g_free(text);
+		}
+	} else {
+		char *text = gui_text_buffer();
+		gui_save_file(filename, text);
+		g_free(text);
+	}
+}
+
+static void gui_show_open_dialog(void)
+{
+	GtkWidget *dialog =
+		gtk_file_chooser_dialog_new("Open File", GTK_WINDOW(window),
+					    GTK_FILE_CHOOSER_ACTION_OPEN, "Cancel",
+					    GTK_RESPONSE_CANCEL, "Open", GTK_RESPONSE_ACCEPT, NULL);
+
+	int res = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (res == GTK_RESPONSE_ACCEPT) {
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+		gtk_file_chooser_set_current_folder(chooser, g_get_home_dir());
+		char *openfile = gtk_file_chooser_get_filename(chooser);
+		gui_fill_text_view_from_file(openfile);
+		strcpy(filename, openfile);
+		g_free(openfile);
+	}
+
+	gtk_widget_destroy(dialog);
+}
+
+static void gui_show_new_dialog(void)
+{
+	gui_fill_text_view("");
+	strcpy(filename, "");
+}
+
 static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	UNUSED(widget);
 	UNUSED(data);
 
 	if (event->state & GDK_CONTROL_MASK) {
-		if (event->keyval == 's')
-			gui_show_warning("Saving is not yet supported");
+		if (event->keyval == GDK_KEY_s)
+			gui_show_save_dialog();
+		else if (event->keyval == GDK_KEY_o)
+			gui_show_open_dialog();
+		else if (event->keyval == GDK_KEY_n)
+			gui_show_new_dialog();
 		else if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter)
 			gui_call_parser();
 
@@ -147,7 +229,25 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	GtkWidget *file_menu = gtk_menu_new();
 	GtkWidget *file_tab = gtk_menu_item_new_with_label("File");
 
+	GtkWidget *file_new_field = gtk_menu_item_new_with_label("New");
+	g_signal_connect(G_OBJECT(file_new_field), "activate", G_CALLBACK(gui_show_new_dialog),
+			 NULL);
+
+	GtkWidget *file_open_field = gtk_menu_item_new_with_label("Open");
+	g_signal_connect(G_OBJECT(file_open_field), "activate", G_CALLBACK(gui_show_open_dialog),
+			 NULL);
+
+	GtkWidget *file_save_field =
+		gtk_menu_item_new_with_label("Save"); // Consider save as; might use var
+	g_signal_connect(G_OBJECT(file_save_field), "activate", G_CALLBACK(gui_show_save_dialog),
+			 NULL);
+
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_tab), file_menu);
+
+	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_new_field);
+	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_field);
+	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_field);
+
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_tab);
 	gtk_container_add(GTK_CONTAINER(box), menu_bar);
 
@@ -160,7 +260,7 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_widget_show_all(window);
 
 	// Only for testing purposes
-	gui_fill_text_view("test.asm");
+	gui_fill_text_view_from_file("test.asm");
 
 	gui_init_highlighter();
 }
