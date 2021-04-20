@@ -111,6 +111,8 @@ int gui_init(int argc, char *argv[])
 {
 	gtk_init(&argc, &argv);
 
+	g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL);
+
 	GtkApplication *app =
 		gtk_application_new("de.melvars.simsalasim", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(gui_activate), NULL);
