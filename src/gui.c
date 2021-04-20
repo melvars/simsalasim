@@ -1,5 +1,6 @@
 #include <def.h>
 #include <gtk/gtk.h>
+#include <gtksourceview/gtksource.h>
 #include <gui.h>
 #include <parser.h>
 #include <stdio.h>
@@ -38,11 +39,8 @@ static void gui_fill_text_view(const char *path)
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), text_buffer);
 }
 
-static void gui_call_parser(GtkWidget *widget, gpointer data)
+static void gui_call_parser(void)
 {
-	UNUSED(data);
-	UNUSED(widget);
-
 	char *buf = gui_text_buffer();
 
 	// TODO: Get actual buffer size
@@ -80,31 +78,49 @@ void gui_show_info(const char *text)
 	gtk_widget_destroy(info);
 }
 
+static void key_event_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	UNUSED(widget);
+	UNUSED(data);
+	//	printf("%d\n", event->state);
+	//	printf("%d\n", event->keyval);
+	if (event->state == 20 && event->keyval == 65293) { // TODO: Softcode numbers
+		gui_call_parser();
+	}
+}
+
 static void gui_activate(GtkApplication *app, gpointer data)
 {
 	UNUSED(data);
 
 	window = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(window), "Window");
-	gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
+	gtk_window_set_title(GTK_WINDOW(window), "simsalasim");
+	gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
+
+	g_signal_connect(window, "key_press_event", G_CALLBACK(key_event_handler), NULL);
 
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
 	gtk_container_add(GTK_CONTAINER(window), box);
 
-	text_view = gtk_text_view_new();
-	gtk_container_add(GTK_CONTAINER(box), text_view);
+	// Very cool menu bar
+	GtkWidget *menu_bar = gtk_menu_bar_new();
+	GtkWidget *file_menu = gtk_menu_new();
+	GtkWidget *file_tab = gtk_menu_item_new_with_label("File");
 
-	GtkWidget *button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_container_add(GTK_CONTAINER(box), button_box);
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_tab), file_menu);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_tab);
+	gtk_container_add(GTK_CONTAINER(box), menu_bar);
 
-	GtkWidget *button = gtk_button_new_with_label("Compile");
-	g_signal_connect(button, "clicked", G_CALLBACK(gui_call_parser), NULL);
-	gtk_container_add(GTK_CONTAINER(button_box), button);
+	// Strange text view
+	text_view = gtk_source_view_new();
+	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text_view), TRUE);
+	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 10);
 
 	gtk_widget_show_all(window);
 
 	// Only for testing purposes
-	gui_fill_text_view("test.asm");
+	//gui_fill_text_view("test.asm");
+	UNUSED(gui_fill_text_view);
 }
 
 int gui_init(int argc, char *argv[])
