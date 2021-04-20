@@ -78,7 +78,7 @@ void gui_show_info(const char *text)
 	gtk_widget_destroy(info);
 }
 
-static void key_event_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+static gboolean key_event_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	UNUSED(widget);
 	UNUSED(data);
@@ -86,7 +86,9 @@ static void key_event_handler(GtkWidget *widget, GdkEventKey *event, gpointer da
 	//	printf("%d\n", event->keyval);
 	if (event->state == 20 && event->keyval == 65293) { // TODO: Softcode numbers
 		gui_call_parser();
+		return TRUE;
 	}
+	return FALSE;
 }
 
 static void gui_activate(GtkApplication *app, gpointer data)
