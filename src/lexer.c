@@ -3,7 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#define CMP(tok) (strncmp(tok " ", str, MIN(strlen(tok) + 1, size)) == 0)
+#define ALPHA(a) (((a) >= 'a' && (a) <= 'z') || ((a) >= 'A' && (a) <= 'Z'))
+#define NUMERIC(a) ((a) >= '0' && (a) <= '9')
+
+#define CMPSP(tok) (strncmp(tok " ", str, MIN(strlen(tok) + 1, size)) == 0) // CMP with space at end
+#define CMPNA(tok)                                                                                 \
+	(strncmp(tok, str, MIN(strlen(tok), size)) == 0 &&                                         \
+	 !ALPHA(str[strlen(tok)])) // CMP with non alpha at end
 
 void token_print(struct token *tok)
 {
@@ -12,7 +18,7 @@ void token_print(struct token *tok)
 
 	char swp = tok->start[tok->length];
 	tok->start[tok->length] = 0;
-	printf("%s\n", tok->start);
+	printf("%s (%d)\n", tok->start, tok->type);
 	tok->start[tok->length] = swp;
 }
 
@@ -22,157 +28,219 @@ struct token token_resolve(char *str, u32 size)
 	u32 length = 0;
 
 	// "Beautiful" ~ Everyone. Probably.
-	if (CMP("nop")) {
+	if (NUMERIC(str[0]) && !ALPHA(str[1])) {
+		while (NUMERIC(str[length++]))
+			;
+		length--;
+		type = DEC_NUM;
+	} else if (str[0] == '\n') {
+		type = NEWLINE;
+		length = 1;
+	} else if (str[0] == ' ') {
+		type = SPACE;
+		length = 1;
+	} else if (str[0] == ',') {
+		type = COMMA;
+		length = 1;
+	} else if (str[0] == '$') {
+		type = DOLLAR;
+		length = 1;
+	} else if (str[0] == '/') {
+		type = SLASH;
+		length = 1;
+	} else if (str[0] == '+') {
+		type = PLUS;
+		length = 1;
+	} else if (str[0] == '.') {
+		type = DOT;
+		length = 1;
+	} else if (str[0] == ':') {
+		type = COLON;
+		length = 1;
+	} else if (str[0] == ';') {
+		type = SEMICOLON;
+		length = 1;
+	} else if (str[0] == '#') {
+		type = HASH;
+		length = 1;
+	} else if (str[0] == 'A' && !ALPHA(str[1])) {
+		type = ACCU;
+		length = 1;
+	} else if (CMPNA("R0")) {
+		type = R0;
+		length = 2;
+	} else if (CMPNA("R1")) {
+		type = R1;
+		length = 2;
+	} else if (CMPNA("R2")) {
+		type = R2;
+		length = 2;
+	} else if (CMPNA("R3")) {
+		type = R3;
+		length = 2;
+	} else if (CMPNA("R4")) {
+		type = R4;
+		length = 2;
+	} else if (CMPNA("R5")) {
+		type = R5;
+		length = 2;
+	} else if (CMPNA("R6")) {
+		type = R6;
+		length = 2;
+	} else if (CMPNA("R7")) {
+		type = R7;
+		length = 2;
+	} else if (CMPSP("nop")) {
 		type = NOP;
 		length = 3;
-	} else if (CMP("jbc")) {
+	} else if (CMPSP("jbc")) {
 		type = JBC;
 		length = 3;
-	} else if (CMP("jb")) {
+	} else if (CMPSP("jb")) {
 		type = JB;
 		length = 2;
-	} else if (CMP("jnb")) {
+	} else if (CMPSP("jnb")) {
 		type = JNB;
 		length = 3;
-	} else if (CMP("jc")) {
+	} else if (CMPSP("jc")) {
 		type = JC;
 		length = 2;
-	} else if (CMP("jnc")) {
+	} else if (CMPSP("jnc")) {
 		type = JNC;
 		length = 3;
-	} else if (CMP("jz")) {
+	} else if (CMPSP("jz")) {
 		type = JZ;
 		length = 2;
-	} else if (CMP("jnz")) {
+	} else if (CMPSP("jnz")) {
 		type = JNZ;
 		length = 3;
-	} else if (CMP("sjmp")) {
+	} else if (CMPSP("sjmp")) {
 		type = SJMP;
 		length = 4;
-	} else if (CMP("mov")) {
+	} else if (CMPSP("mov")) {
 		type = MOV;
 		length = 3;
-	} else if (CMP("orl")) {
+	} else if (CMPSP("orl")) {
 		type = ORL;
 		length = 3;
-	} else if (CMP("anl")) {
+	} else if (CMPSP("anl")) {
 		type = ANL;
 		length = 3;
-	} else if (CMP("push")) {
+	} else if (CMPSP("push")) {
 		type = PUSH;
 		length = 4;
-	} else if (CMP("pop")) {
+	} else if (CMPSP("pop")) {
 		type = POP;
 		length = 3;
-	} else if (CMP("movx")) {
+	} else if (CMPSP("movx")) {
 		type = MOVX;
 		length = 4;
-	} else if (CMP("ajmp")) {
+	} else if (CMPSP("ajmp")) {
 		type = AJMP;
 		length = 4;
-	} else if (CMP("acall")) {
+	} else if (CMPSP("acall")) {
 		type = ACALL;
 		length = 5;
-	} else if (CMP("ljmp")) {
+	} else if (CMPSP("ljmp")) {
 		type = LJMP;
 		length = 4;
-	} else if (CMP("lcall")) {
+	} else if (CMPSP("lcall")) {
 		type = LCALL;
 		length = 5;
-	} else if (CMP("reti")) {
+	} else if (CMPSP("reti")) {
 		type = RETI;
 		length = 4;
-	} else if (CMP("ret")) {
+	} else if (CMPSP("ret")) {
 		type = RET;
 		length = 3;
-	} else if (CMP("xrl")) {
+	} else if (CMPSP("xrl")) {
 		type = XRL;
 		length = 3;
-	} else if (CMP("cpl")) {
+	} else if (CMPSP("cpl")) {
 		type = CPL;
 		length = 3;
-	} else if (CMP("clr")) {
+	} else if (CMPSP("clr")) {
 		type = CLR;
 		length = 3;
-	} else if (CMP("setb")) {
+	} else if (CMPSP("setb")) {
 		type = SETB;
 		length = 4;
-	} else if (CMP("rr")) {
+	} else if (CMPSP("rr")) {
 		type = RR;
 		length = 2;
-	} else if (CMP("rrc")) {
+	} else if (CMPSP("rrc")) {
 		type = RRC;
 		length = 3;
-	} else if (CMP("rl")) {
+	} else if (CMPSP("rl")) {
 		type = RL;
 		length = 2;
-	} else if (CMP("rlc")) {
+	} else if (CMPSP("rlc")) {
 		type = RLC;
 		length = 3;
-	} else if (CMP("xlr")) {
+	} else if (CMPSP("xlr")) {
 		type = XLR;
 		length = 3;
-	} else if (CMP("jmp")) {
+	} else if (CMPSP("jmp")) {
 		type = JMP;
 		length = 3;
-	} else if (CMP("movc")) {
+	} else if (CMPSP("movc")) {
 		type = MOVC;
 		length = 4;
-	} else if (CMP("inc")) {
+	} else if (CMPSP("inc")) {
 		type = INC;
 		length = 3;
-	} else if (CMP("dec")) {
+	} else if (CMPSP("dec")) {
 		type = DEC;
 		length = 3;
-	} else if (CMP("add")) {
+	} else if (CMPSP("add")) {
 		type = ADD;
 		length = 3;
-	} else if (CMP("addc")) {
+	} else if (CMPSP("addc")) {
 		type = ADDC;
 		length = 4;
-	} else if (CMP("div")) {
+	} else if (CMPSP("div")) {
 		type = DIV;
 		length = 3;
-	} else if (CMP("dubb")) {
+	} else if (CMPSP("dubb")) {
 		type = DUBB;
 		length = 4;
-	} else if (CMP("mul")) {
+	} else if (CMPSP("mul")) {
 		type = MUL;
 		length = 3;
-	} else if (CMP("cjne")) {
+	} else if (CMPSP("cjne")) {
 		type = CJNE;
 		length = 4;
-	} else if (CMP("swap")) {
+	} else if (CMPSP("swap")) {
 		type = SWAP;
 		length = 4;
-	} else if (CMP("da")) {
+	} else if (CMPSP("da")) {
 		type = DA;
 		length = 2;
-	} else if (CMP("crl")) {
+	} else if (CMPSP("crl")) {
 		type = CRL;
 		length = 3;
-	} else if (CMP("xch")) {
+	} else if (CMPSP("xch")) {
 		type = XCH;
 		length = 3;
-	} else if (CMP("djnz")) {
+	} else if (CMPSP("djnz")) {
 		type = DJNZ;
 		length = 4;
-	} else if (CMP("xchd")) {
+	} else if (CMPSP("xchd")) {
 		type = XCHD;
 		length = 4;
-	} else if (CMP("call")) {
+	} else if (CMPSP("call")) {
 		type = CALL;
 		length = 4;
-	} else if (CMP("org")) {
+	} else if (CMPSP("org")) {
 		type = ORG;
 		length = 3;
-	} else if (CMP("db")) {
+	} else if (CMPSP("db")) {
 		type = DB;
 		length = 2;
-	} else if (CMP("dw")) {
+	} else if (CMPSP("dw")) {
 		type = DW;
 		length = 2;
-	} else if (CMP("include")) {
+	} else if (CMPSP("include")) {
 		type = INCLUDE;
 		length = 7;
 	}

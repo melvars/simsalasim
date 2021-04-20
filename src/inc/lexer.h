@@ -6,6 +6,8 @@
 enum token_type {
 	UNKNOWN,
 	NEWLINE,
+	SPACE,
+
 	NOP,
 	JBC,
 	JB,
@@ -57,6 +59,29 @@ enum token_type {
 	DB,
 	DW,
 	INCLUDE,
+
+	HASH,
+	DOLLAR,
+	SLASH,
+	PLUS,
+	COMMA,
+	DOT,
+	COLON,
+	SEMICOLON,
+
+	DEC_NUM,
+	HEX_NUM,
+	BIN_NUM,
+
+	ACCU,
+	R0,
+	R1,
+	R2,
+	R3,
+	R4,
+	R5,
+	R6,
+	R7,
 };
 
 struct token {

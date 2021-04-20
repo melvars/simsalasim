@@ -3,8 +3,13 @@
 
 #include <def.h>
 
+struct context {
+	u32 line;
+	u32 column;
+};
+
 void warnings_print(void);
-void warnings_add(u32 line, const char *fmt, ...);
+void warnings_add(struct context *ctx, const char *fmt, ...);
 void warnings_clear(void);
 u8 warnings_exist(void);
 

@@ -11,18 +11,18 @@
 
 struct warning {
 	u8 exists;
-	u32 line;
+	struct context *ctx;
 	char text[WARNING_LENGTH];
 };
 
 static struct warning warnings[WARNING_COUNT] = { 0 };
 static u32 warning_index = 0;
-void warnings_add(u32 line, const char *fmt, ...)
+void warnings_add(struct context *ctx, const char *fmt, ...)
 {
 	assert(warning_index + 1 < WARNING_COUNT);
 
 	warnings[warning_index].exists = 1;
-	warnings[warning_index].line = line;
+	warnings[warning_index].ctx = ctx;
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -40,7 +40,8 @@ void warnings_print(void)
 			continue;
 
 		/* gui_show_warning(warnings[i].text); */
-		printf("Line %d: %s\n", warnings[i].line, warnings[i].text);
+		printf("Line %d:%d: %s\n", warnings[i].ctx->line, warnings[i].ctx->column,
+		       warnings[i].text);
 	}
 }
 

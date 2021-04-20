@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <def.h>
 #include <lexer.h>
 #include <parser.h>
@@ -27,587 +28,523 @@ static void rom_add(u8 byte)
  * Main parsing
  */
 
-static u32 parse_nop(u32 line, char *str, u32 size)
+static inline u32 toks_count(struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
+	struct token *p = toks;
+	while (p && p->type)
+		p++;
+	return p - toks;
+}
+
+static void parse_nop(struct context *ctx, struct token *toks)
+{
+	UNUSED(ctx);
+	UNUSED(toks);
 	rom_add(0);
-	return 0;
 }
 
-static u32 parse_jbc(u32 line, char *str, u32 size)
+static void parse_jbc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jb(u32 line, char *str, u32 size)
+static void parse_jb(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jnb(u32 line, char *str, u32 size)
+static void parse_jnb(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jc(u32 line, char *str, u32 size)
+static void parse_jc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jnc(u32 line, char *str, u32 size)
+static void parse_jnc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jz(u32 line, char *str, u32 size)
+static void parse_jz(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jnz(u32 line, char *str, u32 size)
+static void parse_jnz(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_sjmp(u32 line, char *str, u32 size)
+static void parse_sjmp(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_mov(u32 line, char *str, u32 size)
+static void parse_mov(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	printf("CNT: %d\n", toks_count(toks));
+	/* if (toks_count(toks) > 4) */
+	/* 	warnings_add(ctx, "Too many arguments"); */
 }
 
-static u32 parse_orl(u32 line, char *str, u32 size)
+static void parse_orl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_anl(u32 line, char *str, u32 size)
+static void parse_anl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_push(u32 line, char *str, u32 size)
+static void parse_push(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_pop(u32 line, char *str, u32 size)
+static void parse_pop(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_movx(u32 line, char *str, u32 size)
+static void parse_movx(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_ajmp(u32 line, char *str, u32 size)
+static void parse_ajmp(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_acall(u32 line, char *str, u32 size)
+static void parse_acall(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_ljmp(u32 line, char *str, u32 size)
+static void parse_ljmp(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_lcall(u32 line, char *str, u32 size)
+static void parse_lcall(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_reti(u32 line, char *str, u32 size)
+static void parse_reti(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_ret(u32 line, char *str, u32 size)
+static void parse_ret(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_xrl(u32 line, char *str, u32 size)
+static void parse_xrl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_cpl(u32 line, char *str, u32 size)
+static void parse_cpl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_clr(u32 line, char *str, u32 size)
+static void parse_clr(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_setb(u32 line, char *str, u32 size)
+static void parse_setb(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_rr(u32 line, char *str, u32 size)
+static void parse_rr(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_rrc(u32 line, char *str, u32 size)
+static void parse_rrc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_rl(u32 line, char *str, u32 size)
+static void parse_rl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_rlc(u32 line, char *str, u32 size)
+static void parse_rlc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_xlr(u32 line, char *str, u32 size)
+static void parse_xlr(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_jmp(u32 line, char *str, u32 size)
+static void parse_jmp(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_movc(u32 line, char *str, u32 size)
+static void parse_movc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_inc(u32 line, char *str, u32 size)
+static void parse_inc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_dec(u32 line, char *str, u32 size)
+static void parse_dec(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_add(u32 line, char *str, u32 size)
+static void parse_add(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_addc(u32 line, char *str, u32 size)
+static void parse_addc(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_div(u32 line, char *str, u32 size)
+static void parse_div(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_dubb(u32 line, char *str, u32 size)
+static void parse_dubb(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_mul(u32 line, char *str, u32 size)
+static void parse_mul(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_cjne(u32 line, char *str, u32 size)
+static void parse_cjne(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_swap(u32 line, char *str, u32 size)
+static void parse_swap(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_da(u32 line, char *str, u32 size)
+static void parse_da(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_crl(u32 line, char *str, u32 size)
+static void parse_crl(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_xch(u32 line, char *str, u32 size)
+static void parse_xch(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_djnz(u32 line, char *str, u32 size)
+static void parse_djnz(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_xchd(u32 line, char *str, u32 size)
+static void parse_xchd(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_call(u32 line, char *str, u32 size)
+static void parse_call(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_org(u32 line, char *str, u32 size)
+static void parse_org(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_db(u32 line, char *str, u32 size)
+static void parse_db(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_dw(u32 line, char *str, u32 size)
+static void parse_dw(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_include(u32 line, char *str, u32 size)
+static void parse_include(struct context *ctx, struct token *toks)
 {
-	UNUSED(line);
-	UNUSED(str);
-	UNUSED(size);
-	return 0;
+	UNUSED(ctx);
+	UNUSED(toks);
 }
 
-static u32 parse_instruction(u32 line, char *str, u32 size)
+static u32 parse_instruction(struct context *ctx, char *str, u32 size)
 {
-	struct token tok = token_resolve(str, size);
+	struct token toks[32] = { 0 };
+	u8 tok_ind = 0;
+	u8 str_ind = 0;
 
-	token_print(&tok);
+	while (1) {
+		struct token tok = token_resolve(str + str_ind, size - str_ind);
+		if (tok.type == NEWLINE) {
+			ctx->line++;
+			break;
+		}
 
-	u32 ret = tok.length;
+		if (tok.type == UNKNOWN) {
+			break;
+		}
 
-	switch (tok.type) {
+		if (tok.type == SPACE) {
+			str_ind += tok.length;
+			continue;
+		}
+
+		token_print(&tok);
+
+		assert(tok_ind + 1 < (u8)(sizeof(toks) / sizeof(toks[0])));
+		toks[tok_ind++] = tok;
+		str_ind += tok.length;
+	}
+
+	ctx->column = str_ind;
+
+	if (!tok_ind) {
+		warnings_add(ctx, "Parsing failed");
+		return 0;
+	}
+
+	switch (toks[0].type) {
 	case UNKNOWN:
-		warnings_add(line, "Unknown instruction");
+		warnings_add(ctx, "Unknown instruction");
 		return 0;
 	case NEWLINE:
 		break;
 	case NOP:
-		ret += parse_nop(line, str, size);
+		parse_nop(ctx, toks);
 		break;
 	case JBC:
-		ret += parse_jbc(line, str, size);
+		parse_jbc(ctx, toks);
 		break;
 	case JB:
-		ret += parse_jb(line, str, size);
+		parse_jb(ctx, toks);
 		break;
 	case JNB:
-		ret += parse_jnb(line, str, size);
+		parse_jnb(ctx, toks);
 		break;
 	case JC:
-		ret += parse_jc(line, str, size);
+		parse_jc(ctx, toks);
 		break;
 	case JNC:
-		ret += parse_jnc(line, str, size);
+		parse_jnc(ctx, toks);
 		break;
 	case JZ:
-		ret += parse_jz(line, str, size);
+		parse_jz(ctx, toks);
 		break;
 	case JNZ:
-		ret += parse_jnz(line, str, size);
+		parse_jnz(ctx, toks);
 		break;
 	case SJMP:
-		ret += parse_sjmp(line, str, size);
+		parse_sjmp(ctx, toks);
 		break;
 	case MOV:
-		ret += parse_mov(line, str, size);
+		parse_mov(ctx, toks);
 		break;
 	case ORL:
-		ret += parse_orl(line, str, size);
+		parse_orl(ctx, toks);
 		break;
 	case ANL:
-		ret += parse_anl(line, str, size);
+		parse_anl(ctx, toks);
 		break;
 	case PUSH:
-		ret += parse_push(line, str, size);
+		parse_push(ctx, toks);
 		break;
 	case POP:
-		ret += parse_pop(line, str, size);
+		parse_pop(ctx, toks);
 		break;
 	case MOVX:
-		ret += parse_movx(line, str, size);
+		parse_movx(ctx, toks);
 		break;
 	case AJMP:
-		ret += parse_ajmp(line, str, size);
+		parse_ajmp(ctx, toks);
 		break;
 	case ACALL:
-		ret += parse_acall(line, str, size);
+		parse_acall(ctx, toks);
 		break;
 	case LJMP:
-		ret += parse_ljmp(line, str, size);
+		parse_ljmp(ctx, toks);
 		break;
 	case LCALL:
-		ret += parse_lcall(line, str, size);
+		parse_lcall(ctx, toks);
 		break;
 	case RETI:
-		ret += parse_reti(line, str, size);
+		parse_reti(ctx, toks);
 		break;
 	case RET:
-		ret += parse_ret(line, str, size);
+		parse_ret(ctx, toks);
 		break;
 	case XRL:
-		ret += parse_xrl(line, str, size);
+		parse_xrl(ctx, toks);
 		break;
 	case CPL:
-		ret += parse_cpl(line, str, size);
+		parse_cpl(ctx, toks);
 		break;
 	case CLR:
-		ret += parse_clr(line, str, size);
+		parse_clr(ctx, toks);
 		break;
 	case SETB:
-		ret += parse_setb(line, str, size);
+		parse_setb(ctx, toks);
 		break;
 	case RR:
-		ret += parse_rr(line, str, size);
+		parse_rr(ctx, toks);
 		break;
 	case RRC:
-		ret += parse_rrc(line, str, size);
+		parse_rrc(ctx, toks);
 		break;
 	case RL:
-		ret += parse_rl(line, str, size);
+		parse_rl(ctx, toks);
 		break;
 	case RLC:
-		ret += parse_rlc(line, str, size);
+		parse_rlc(ctx, toks);
 		break;
 	case XLR:
-		ret += parse_xlr(line, str, size);
+		parse_xlr(ctx, toks);
 		break;
 	case JMP:
-		ret += parse_jmp(line, str, size);
+		parse_jmp(ctx, toks);
 		break;
 	case MOVC:
-		ret += parse_movc(line, str, size);
+		parse_movc(ctx, toks);
 		break;
 	case INC:
-		ret += parse_inc(line, str, size);
+		parse_inc(ctx, toks);
 		break;
 	case DEC:
-		ret += parse_dec(line, str, size);
+		parse_dec(ctx, toks);
 		break;
 	case ADD:
-		ret += parse_add(line, str, size);
+		parse_add(ctx, toks);
 		break;
 	case ADDC:
-		ret += parse_addc(line, str, size);
+		parse_addc(ctx, toks);
 		break;
 	case DIV:
-		ret += parse_div(line, str, size);
+		parse_div(ctx, toks);
 		break;
 	case DUBB:
-		ret += parse_dubb(line, str, size);
+		parse_dubb(ctx, toks);
 		break;
 	case MUL:
-		ret += parse_mul(line, str, size);
+		parse_mul(ctx, toks);
 		break;
 	case CJNE:
-		ret += parse_cjne(line, str, size);
+		parse_cjne(ctx, toks);
 		break;
 	case SWAP:
-		ret += parse_swap(line, str, size);
+		parse_swap(ctx, toks);
 		break;
 	case DA:
-		ret += parse_da(line, str, size);
+		parse_da(ctx, toks);
 		break;
 	case CRL:
-		ret += parse_crl(line, str, size);
+		parse_crl(ctx, toks);
 		break;
 	case XCH:
-		ret += parse_xch(line, str, size);
+		parse_xch(ctx, toks);
 		break;
 	case DJNZ:
-		ret += parse_djnz(line, str, size);
+		parse_djnz(ctx, toks);
 		break;
 	case XCHD:
-		ret += parse_xchd(line, str, size);
+		parse_xchd(ctx, toks);
 		break;
 	case CALL:
-		ret += parse_call(line, str, size);
+		parse_call(ctx, toks);
 		break;
 	case ORG:
-		ret += parse_org(line, str, size);
+		parse_org(ctx, toks);
 		break;
 	case DB:
-		ret += parse_db(line, str, size);
+		parse_db(ctx, toks);
 		break;
 	case DW:
-		ret += parse_dw(line, str, size);
+		parse_dw(ctx, toks);
 		break;
 	case INCLUDE:
-		ret += parse_include(line, str, size);
+		parse_include(ctx, toks);
 		break;
 	default:
-		warnings_add(line, "Super-unknown instruction");
+		warnings_add(ctx, "Super-unknown instruction");
 	}
 
-	return ret;
+	return str_ind;
 }
 
 static void clean_buffers(void)
@@ -621,18 +558,21 @@ u8 parse(char *buf, u32 size)
 {
 	clean_buffers();
 
-	u32 line = 0;
+	struct context ctx = { .line = 0, .column = 0 };
 
 	for (u32 i = 0; i < size; i++) {
 		if (buf[i] == '\0')
 			break;
 
 		if (buf[i] == '\n') {
-			line++;
+			ctx.line++;
+			ctx.column = 0;
 			continue;
 		}
 
-		i += parse_instruction(line, buf + i, size - i);
+		u32 len = parse_instruction(&ctx, buf + i, size - i);
+		i += len;
+		ctx.column += len;
 	}
 
 	if (warnings_exist()) {
