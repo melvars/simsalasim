@@ -34,9 +34,9 @@ static void gui_fill_text_view(const char *path)
 	fread(buf, sizeof(buf), sizeof(buf[0]), test);
 	fclose(test);
 
-	GtkTextBuffer *text_buffer = gtk_text_buffer_new(NULL);
-	gtk_text_buffer_set_text(text_buffer, buf, strnlen(buf, sizeof(buf)));
-	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), text_buffer);
+	GtkSourceBuffer *text_buffer = gtk_source_buffer_new(NULL);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(text_buffer), buf, strnlen(buf, sizeof(buf)));
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(text_view), GTK_TEXT_BUFFER(text_buffer));
 }
 
 static void gui_call_parser(void)
@@ -121,8 +121,7 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_widget_show_all(window);
 
 	// Only for testing purposes
-	//gui_fill_text_view("test.asm");
-	UNUSED(gui_fill_text_view);
+	gui_fill_text_view("test.asm");
 }
 
 int gui_init(int argc, char *argv[])
