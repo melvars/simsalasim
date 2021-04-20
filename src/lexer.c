@@ -5,10 +5,13 @@
 
 #define ALPHA(a) (((a) >= 'a' && (a) <= 'z') || ((a) >= 'A' && (a) <= 'Z'))
 #define NUMERIC(a) ((a) >= '0' && (a) <= '9')
+#define ALPHA_NUMERIC(a) (ALPHA(a) || NUMERIC(a))
+#define HEX_NUMERIC(a) (NUMERIC(a) || ((a) >= 'a' && (a) <= 'f') || ((a) >= 'A' && (a) <= 'F'))
 
-#define CMPSP(tok) (strncmp(tok " ", str, MIN(strlen(tok) + 1, size)) == 0) // CMP with space at end
+#define CMPSP(tok)                                                                                 \
+	(strncasecmp(tok " ", str, MIN(strlen(tok) + 1, size)) == 0) // CMP with space at end
 #define CMPNA(tok)                                                                                 \
-	(strncmp(tok, str, MIN(strlen(tok), size)) == 0 &&                                         \
+	(strncasecmp(tok, str, MIN(strlen(tok), size)) == 0 &&                                     \
 	 !ALPHA(str[strlen(tok)])) // CMP with non alpha at end
 
 void token_print(struct token *tok)
@@ -28,11 +31,17 @@ struct token token_resolve(char *str, u32 size)
 	u32 length = 0;
 
 	// "Beautiful" ~ Everyone. Probably.
-	if (NUMERIC(str[0]) && !ALPHA(str[1])) {
-		while (NUMERIC(str[length++]))
-			;
-		length--;
-		type = DEC_NUM;
+	if (NUMERIC(str[0])) {
+		while (HEX_NUMERIC(str[length]))
+			length++;
+
+		if (str[length] == 'h' || str[length] == 'H') {
+			type = HEX_NUM;
+		} else if (str[length] == 'b' || str[length] == 'B') {
+			type = BIN_NUM;
+		} else {
+			type = DEC_NUM;
+		}
 	} else if (str[0] == '\n') {
 		type = NEWLINE;
 		length = 1;
@@ -240,16 +249,29 @@ struct token token_resolve(char *str, u32 size)
 	} else if (CMPSP("dw")) {
 		type = DW;
 		length = 2;
+	} else if (CMPSP("data")) { // Lars: "Who cares?"
+		type = DATA;
+		length = 4;
+	} else if (CMPSP("bit")) {
+		type = BIT;
+		length = 3;
 	} else if (CMPSP("include")) {
 		type = INCLUDE;
 		length = 7;
+	} else {
+		if (ALPHA(str[0])) {
+			while (ALPHA_NUMERIC(str[length]))
+				length++;
+
+			if (length)
+				type = STRING;
+		}
 	}
 
 	struct token tok = {
 		.type = type,
 		.start = str,
 		.length = length,
-		.data = 0,
 	};
 
 	return tok;

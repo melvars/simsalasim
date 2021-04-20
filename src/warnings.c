@@ -11,7 +11,7 @@
 
 struct warning {
 	u8 exists;
-	struct context *ctx;
+	struct context ctx;
 	char text[WARNING_LENGTH];
 };
 
@@ -22,7 +22,7 @@ void warnings_add(struct context *ctx, const char *fmt, ...)
 	assert(warning_index + 1 < WARNING_COUNT);
 
 	warnings[warning_index].exists = 1;
-	warnings[warning_index].ctx = ctx;
+	warnings[warning_index].ctx = *ctx;
 
 	va_list ap;
 	va_start(ap, fmt);
@@ -40,7 +40,7 @@ void warnings_print(void)
 			continue;
 
 		/* gui_show_warning(warnings[i].text); */
-		printf("Line %d:%d: %s\n", warnings[i].ctx->line, warnings[i].ctx->column,
+		printf("Line %d:%d: %s\n", warnings[i].ctx.line, warnings[i].ctx.column,
 		       warnings[i].text);
 	}
 }

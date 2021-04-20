@@ -25,16 +25,30 @@ static void rom_add(u8 byte)
 }
 
 /**
- * Main parsing
+ * Toks parsing
  */
 
-static inline u32 toks_count(struct token *toks)
+static u32 toks_count(struct token *toks)
 {
 	struct token *p = toks;
 	while (p && p->type)
 		p++;
 	return p - toks;
 }
+
+static struct token *toks_peek(struct token *toks, u32 cnt)
+{
+	return toks + cnt;
+}
+
+static struct token *toks_peek_end(struct token *toks)
+{
+	return toks + toks_count(toks) - 1;
+}
+
+/**
+ * Main parsing
+ */
 
 static void parse_nop(struct context *ctx, struct token *toks)
 {
@@ -93,10 +107,10 @@ static void parse_sjmp(struct context *ctx, struct token *toks)
 
 static void parse_mov(struct context *ctx, struct token *toks)
 {
-	UNUSED(ctx);
-	printf("CNT: %d\n", toks_count(toks));
-	/* if (toks_count(toks) > 4) */
-	/* 	warnings_add(ctx, "Too many arguments"); */
+	if (toks_peek_end(toks)->type == COMMA)
+		warnings_add(ctx, "Unexpected end of line");
+	else if (toks_count(toks) > 5)
+		warnings_add(ctx, "Too many arguments");
 }
 
 static void parse_orl(struct context *ctx, struct token *toks)
@@ -345,7 +359,21 @@ static void parse_include(struct context *ctx, struct token *toks)
 	UNUSED(toks);
 }
 
-static u32 parse_instruction(struct context *ctx, char *str, u32 size)
+static void parse_string(struct context *ctx, struct token *toks)
+{
+	enum token_type next = toks_peek(toks, 1)->type;
+	if (next == COLON) {
+		// TODO: Add label lookup tables
+	} else if (next == DATA) {
+		// TODO: Constants map
+	} else if (next == BIT) {
+		// TODO: Constants map
+	} else {
+		warnings_add(ctx, "Expected data/bit/colon");
+	}
+}
+
+static u32 parse_line(struct context *ctx, char *str, u32 size)
 {
 	struct token toks[32] = { 0 };
 	u8 tok_ind = 0;
@@ -369,7 +397,11 @@ static u32 parse_instruction(struct context *ctx, char *str, u32 size)
 
 		token_print(&tok);
 
-		assert(tok_ind + 1 < (u8)(sizeof(toks) / sizeof(toks[0])));
+		if (tok_ind + 1 >= (u8)(sizeof(toks) / sizeof(toks[0]))) {
+			warnings_add(ctx, "Token overflow");
+			return str_ind;
+		}
+
 		toks[tok_ind++] = tok;
 		str_ind += tok.length;
 	}
@@ -378,13 +410,13 @@ static u32 parse_instruction(struct context *ctx, char *str, u32 size)
 
 	if (!tok_ind) {
 		warnings_add(ctx, "Parsing failed");
-		return 0;
+		return str_ind;
 	}
 
 	switch (toks[0].type) {
 	case UNKNOWN:
 		warnings_add(ctx, "Unknown instruction");
-		return 0;
+		break;
 	case NEWLINE:
 		break;
 	case NOP:
@@ -540,8 +572,39 @@ static u32 parse_instruction(struct context *ctx, char *str, u32 size)
 	case INCLUDE:
 		parse_include(ctx, toks);
 		break;
+	case STRING:
+		parse_string(ctx, toks);
+		break;
+	case SPACE:
+	case HASH:
+	case DOLLAR:
+	case SLASH:
+	case PLUS:
+	case COMMA:
+	case DOT:
+	case COLON:
+	case SEMICOLON:
+	case DEC_NUM:
+	case HEX_NUM:
+	case BIN_NUM:
+	case ACCU:
+	case ATR0:
+	case ATR1:
+	case R0:
+	case R1:
+	case R2:
+	case R3:
+	case R4:
+	case R5:
+	case R6:
+	case R7:
+	case DATA:
+	case BIT:
+		warnings_add(ctx, "Random non-instruction found");
+		break;
 	default:
 		warnings_add(ctx, "Super-unknown instruction");
+		break;
 	}
 
 	return str_ind;
@@ -570,7 +633,7 @@ u8 parse(char *buf, u32 size)
 			continue;
 		}
 
-		u32 len = parse_instruction(&ctx, buf + i, size - i);
+		u32 len = parse_line(&ctx, buf + i, size - i);
 		i += len;
 		ctx.column += len;
 	}

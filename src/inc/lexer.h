@@ -58,6 +58,8 @@ enum token_type {
 	ORG,
 	DB,
 	DW,
+	DATA,
+	BIT,
 	INCLUDE,
 
 	HASH,
@@ -73,7 +75,12 @@ enum token_type {
 	HEX_NUM,
 	BIN_NUM,
 
+	STRING,
+
+	// Registers
 	ACCU,
+	ATR0,
+	ATR1,
 	R0,
 	R1,
 	R2,
@@ -88,7 +95,6 @@ struct token {
 	enum token_type type;
 	char *start;
 	u32 length;
-	void *data;
 };
 
 void token_print(struct token *tok);
