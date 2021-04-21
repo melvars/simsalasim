@@ -208,8 +208,8 @@ static void gui_add_menu_item(const char *name, GtkWidget *parent, GtkAccelGroup
 {
 	GtkWidget *menu_item = gtk_menu_item_new_with_label(name);
 	g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(callback), NULL);
-    //	GClosure *closure = g_cclosure_new(callback, 0, 0);
-    //	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
+	//	GClosure *closure = g_cclosure_new(callback, 0, 0);
+	//	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
 	gtk_widget_add_accelerator(menu_item, "activate", accel_group, key, mask_key,
 				   GTK_ACCEL_VISIBLE);
 	gtk_menu_shell_append(GTK_MENU_SHELL(parent), menu_item);
@@ -225,10 +225,10 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
 
 	// Key press listener
-	g_signal_connect(window, "key_press_event", G_CALLBACK(gui_key_press_handler), NULL);
+	g_signal_connect(window, "key_release_event", G_CALLBACK(gui_key_press_handler), NULL);
 
 	// Main container
-	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
+	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(window), box);
 
 	// Keyboard shortcut map init
