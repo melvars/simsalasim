@@ -141,7 +141,7 @@ static void gui_show_save_dialog(void)
 		int res = gtk_dialog_run(GTK_DIALOG(dialog));
 		if (res == GTK_RESPONSE_ACCEPT) {
 			char *savefile = gtk_file_chooser_get_filename(chooser);
-			strncpy(filename, savefile, sizeof(filename));
+			strcpy(filename, savefile);
 			g_free(savefile);
 			text = gui_text_buffer();
 			gtk_widget_destroy(dialog);
@@ -267,6 +267,7 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gui_fill_text_view_from_file("test.asm");
 
 	gui_init_highlighter();
+	gui_call_syntax_highlighter();
 }
 
 int gui_init(int argc, char *argv[])
