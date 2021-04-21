@@ -9,7 +9,6 @@
 
 #define BUFFER_SIZE 1024
 
-// Main window
 static GtkWidget *window;
 static GtkWidget *text_view;
 static char filename[1024] = { 0 };
@@ -115,14 +114,14 @@ void gui_show_info(const char *text)
 	gtk_widget_destroy(info);
 }
 
-static int gui_save_file(char *fname, char *fdata)
+static u8 gui_save_file(char *fname, char *fdata)
 {
 	FILE *f = fopen(fname, "w");
 	if (f == NULL)
-		return 1;
+		return 0;
 	fputs(fdata, f);
 	fclose(f);
-	return 0;
+	return 1;
 }
 
 static void gui_show_save_dialog(void)
@@ -135,28 +134,30 @@ static void gui_show_save_dialog(void)
 
 	gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
 
+	char *text;
 	if (strlen(filename) == 0) {
 		gtk_file_chooser_set_current_folder(chooser, g_get_home_dir());
 		gtk_file_chooser_set_current_name(chooser, "new.asm");
 		int res = gtk_dialog_run(GTK_DIALOG(dialog));
 		if (res == GTK_RESPONSE_ACCEPT) {
 			char *savefile = gtk_file_chooser_get_filename(chooser);
-			strcpy(filename, savefile);
-			char *text = gui_text_buffer();
-			int r = gui_save_file(savefile, text);
-			gtk_widget_destroy(dialog);
-			if (r == 0)
-				gui_show_info("File saved!");
-			else
-				gui_show_warning("Could not save file!");
+			strncpy(filename, savefile, sizeof(filename));
 			g_free(savefile);
-			g_free(text);
+			text = gui_text_buffer();
+			gtk_widget_destroy(dialog);
+		} else {
+			return;
 		}
 	} else {
-		char *text = gui_text_buffer();
-		gui_save_file(filename, text);
-		g_free(text);
+		text = gui_text_buffer();
 	}
+
+	u8 ret = gui_save_file(filename, text);
+	g_free(text);
+	if (ret)
+		gui_show_info("File saved!");
+	else
+		gui_show_warning("Could not save file!");
 }
 
 static void gui_show_open_dialog(void)
@@ -179,10 +180,10 @@ static void gui_show_open_dialog(void)
 	gtk_widget_destroy(dialog);
 }
 
-static void gui_show_new_dialog(void)
+static void gui_show_new_file_dialog(void)
 {
 	gui_fill_text_view("");
-	strcpy(filename, "");
+	memset(filename, 0, sizeof(filename));
 }
 
 static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
@@ -220,18 +221,18 @@ static void gui_activate(GtkApplication *app, gpointer data)
 
 	// Keyboard shortcut map init
 	GtkAccelGroup *accelGroup = gtk_accel_group_new();
-    gtk_window_add_accel_group(GTK_WINDOW(window), accelGroup);
+	gtk_window_add_accel_group(GTK_WINDOW(window), accelGroup);
 
-    // Very cool menu bar
+	// Very cool menu bar
 	GtkWidget *menu_bar = gtk_menu_bar_new();
 	GtkWidget *file_menu = gtk_menu_new();
 	GtkWidget *file_tab = gtk_menu_item_new_with_label("File");
 
 	GtkWidget *file_new_field = gtk_menu_item_new_with_label("New");
-	g_signal_connect(G_OBJECT(file_new_field), "activate", G_CALLBACK(gui_show_new_dialog),
+	g_signal_connect(G_OBJECT(file_new_field), "activate", G_CALLBACK(gui_show_new_file_dialog),
 			 NULL);
 	gtk_accel_group_connect(accelGroup, GDK_KEY_n, GDK_CONTROL_MASK, 0,
-				g_cclosure_new(gui_show_new_dialog, 0, 0));
+				g_cclosure_new(gui_show_new_file_dialog, 0, 0));
 
 	GtkWidget *file_open_field = gtk_menu_item_new_with_label("Open");
 	g_signal_connect(G_OBJECT(file_open_field), "activate", G_CALLBACK(gui_show_open_dialog),
