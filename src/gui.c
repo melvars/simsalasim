@@ -208,8 +208,8 @@ static void gui_add_menu_item(const char *name, GtkWidget *parent, GtkAccelGroup
 {
 	GtkWidget *menu_item = gtk_menu_item_new_with_label(name);
 	g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(callback), NULL);
-	GClosure *closure = g_cclosure_new(callback, 0, 0);
-	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
+    //	GClosure *closure = g_cclosure_new(callback, 0, 0);
+    //	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
 	gtk_widget_add_accelerator(menu_item, "activate", accel_group, key, mask_key,
 				   GTK_ACCEL_VISIBLE);
 	gtk_menu_shell_append(GTK_MENU_SHELL(parent), menu_item);
