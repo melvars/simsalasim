@@ -124,7 +124,7 @@ static u8 gui_save_file(char *fname, char *fdata)
 	return 1;
 }
 
-static void gui_show_save_dialog(void)
+static void gui_show_save_file_dialog(void)
 {
 	GtkWidget *dialog =
 		gtk_file_chooser_dialog_new("Save File", GTK_WINDOW(window),
@@ -160,7 +160,7 @@ static void gui_show_save_dialog(void)
 		gui_show_warning("Could not save file!");
 }
 
-static void gui_show_open_dialog(void)
+static void gui_show_open_file_dialog(void)
 {
 	GtkWidget *dialog =
 		gtk_file_chooser_dialog_new("Open File", GTK_WINDOW(window),
@@ -203,6 +203,18 @@ static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpo
 	return FALSE;
 }
 
+static void gui_add_menu_item(const char *name, GtkWidget *parent, GtkAccelGroup *accel_group,
+			      GdkModifierType mask_key, guint key, void (*callback)(void))
+{
+	GtkWidget *menu_item = gtk_menu_item_new_with_label(name);
+	g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(callback), NULL);
+	GClosure *closure = g_cclosure_new(callback, 0, 0);
+	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
+	gtk_widget_add_accelerator(menu_item, "activate", accel_group, key, mask_key,
+				   GTK_ACCEL_VISIBLE);
+	gtk_menu_shell_append(GTK_MENU_SHELL(parent), menu_item);
+}
+
 static void gui_activate(GtkApplication *app, gpointer data)
 {
 	UNUSED(data);
@@ -220,39 +232,26 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_container_add(GTK_CONTAINER(window), box);
 
 	// Keyboard shortcut map init
-	GtkAccelGroup *accelGroup = gtk_accel_group_new();
-	gtk_window_add_accel_group(GTK_WINDOW(window), accelGroup);
+	GtkAccelGroup *accel_group = gtk_accel_group_new();
+	gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
 
 	// Very cool menu bar
 	GtkWidget *menu_bar = gtk_menu_bar_new();
+	// File menu
 	GtkWidget *file_menu = gtk_menu_new();
 	GtkWidget *file_tab = gtk_menu_item_new_with_label("File");
 
-	GtkWidget *file_new_field = gtk_menu_item_new_with_label("New");
-	g_signal_connect(G_OBJECT(file_new_field), "activate", G_CALLBACK(gui_show_new_file_dialog),
-			 NULL);
-	gtk_accel_group_connect(accelGroup, GDK_KEY_n, GDK_CONTROL_MASK, 0,
-				g_cclosure_new(gui_show_new_file_dialog, 0, 0));
-
-	GtkWidget *file_open_field = gtk_menu_item_new_with_label("Open");
-	g_signal_connect(G_OBJECT(file_open_field), "activate", G_CALLBACK(gui_show_open_dialog),
-			 NULL);
-	gtk_accel_group_connect(accelGroup, GDK_KEY_o, GDK_CONTROL_MASK, 0,
-				g_cclosure_new(gui_show_open_dialog, 0, 0));
-
-	GtkWidget *file_save_field = gtk_menu_item_new_with_label("Save");
-	g_signal_connect(G_OBJECT(file_save_field), "activate", G_CALLBACK(gui_show_save_dialog),
-			 NULL);
-	gtk_accel_group_connect(accelGroup, GDK_KEY_s, GDK_CONTROL_MASK, 0,
-				g_cclosure_new(gui_show_save_dialog, 0, 0));
-
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_tab), file_menu);
 
-	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_new_field);
-	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_field);
-	gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_field);
+	gui_add_menu_item("New", file_menu, accel_group, GDK_CONTROL_MASK, GDK_KEY_N,
+			  gui_show_new_file_dialog);
+	gui_add_menu_item("Open", file_menu, accel_group, GDK_CONTROL_MASK, GDK_KEY_O,
+			  gui_show_open_file_dialog);
+	gui_add_menu_item("Save", file_menu, accel_group, GDK_CONTROL_MASK, GDK_KEY_S,
+			  gui_show_save_file_dialog);
 
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_tab);
+
 	gtk_container_add(GTK_CONTAINER(box), menu_bar);
 
 	// Strange text view
