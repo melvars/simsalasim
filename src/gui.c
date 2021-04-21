@@ -198,6 +198,14 @@ static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpo
 		}
 	}
 
+	return FALSE;
+}
+
+static gboolean gui_key_release_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+	UNUSED(widget);
+	UNUSED(data);
+
 	gui_call_syntax_highlighter();
 
 	return FALSE;
@@ -225,7 +233,8 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
 
 	// Key press listener
-	g_signal_connect(window, "key_release_event", G_CALLBACK(gui_key_press_handler), NULL);
+	g_signal_connect(window, "key_press_event", G_CALLBACK(gui_key_press_handler), NULL);
+	g_signal_connect(window, "key_release_event", G_CALLBACK(gui_key_release_handler), NULL);
 
 	// Main container
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
