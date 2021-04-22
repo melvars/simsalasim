@@ -75,6 +75,15 @@ static void gui_init_highlighter(void)
 	gtk_text_buffer_create_tag(buffer, "regs", "foreground", "#00ff00", NULL);
 }
 
+void gui_unhighlight(void)
+{
+	GtkTextIter start, end;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+
+	gtk_text_buffer_get_bounds(buffer, &start, &end);
+	gtk_text_buffer_remove_all_tags(buffer, &start, &end);
+}
+
 void gui_highlight(u32 column, u32 line, u32 length, const char *tag_name)
 {
 	GtkTextIter start, end;

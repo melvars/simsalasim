@@ -52,6 +52,7 @@ void syntax_highlight(char *buf, u32 size)
 
 	u32 diff = 0;
 	char *start = buf;
+	gui_unhighlight();
 	for (u32 i = 0; i < size; i++) {
 		// TODO: Fix highlighting of last line without \n
 		if (buf[i] == '\0')
