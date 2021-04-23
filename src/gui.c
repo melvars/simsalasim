@@ -195,24 +195,10 @@ static void gui_show_new_file_dialog(void)
 	memset(filename, 0, sizeof(filename));
 }
 
-static gboolean gui_key_press_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
-{
-	UNUSED(widget);
-	UNUSED(data);
-
-	if (event->state & GDK_CONTROL_MASK) {
-		if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter) {
-			gui_call_parser();
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-
 static gboolean gui_key_release_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 	UNUSED(widget);
+	UNUSED(event);
 	UNUSED(data);
 
 	gui_call_syntax_highlighter();
@@ -225,8 +211,6 @@ static void gui_add_menu_item(const char *name, GtkWidget *parent, GtkAccelGroup
 {
 	GtkWidget *menu_item = gtk_menu_item_new_with_label(name);
 	g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(callback), NULL);
-	//	GClosure *closure = g_cclosure_new(callback, 0, 0);
-	//	gtk_accel_group_connect(accel_group, key, mask_key, GTK_ACCEL_VISIBLE, closure);
 	gtk_widget_add_accelerator(menu_item, "activate", accel_group, key, mask_key,
 				   GTK_ACCEL_VISIBLE);
 	gtk_menu_shell_append(GTK_MENU_SHELL(parent), menu_item);
@@ -242,7 +226,6 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 400);
 
 	// Key press listener
-	g_signal_connect(window, "key_press_event", G_CALLBACK(gui_key_press_handler), NULL);
 	g_signal_connect(window, "key_release_event", G_CALLBACK(gui_key_release_handler), NULL);
 
 	// Main container
@@ -270,12 +253,23 @@ static void gui_activate(GtkApplication *app, gpointer data)
 
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_tab);
 
+	GtkWidget *run_menu = gtk_menu_new();
+	GtkWidget *run_tab = gtk_menu_item_new_with_label("Run");
+
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(run_tab), run_menu);
+
+	gui_add_menu_item("Compile", run_menu, accel_group, GDK_CONTROL_MASK, GDK_KEY_Return,
+			  gui_call_parser);
+
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), run_tab);
+
 	gtk_container_add(GTK_CONTAINER(box), menu_bar);
 
 	// Strange text view
 	text_view = gtk_source_view_new();
 	gtk_source_view_set_show_line_numbers(GTK_SOURCE_VIEW(text_view), TRUE);
 	gtk_source_view_set_auto_indent(GTK_SOURCE_VIEW(text_view), TRUE);
+	gtk_source_view_set_show_line_marks(GTK_SOURCE_VIEW(text_view), TRUE);
 	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
 
 	gtk_widget_show_all(window);
