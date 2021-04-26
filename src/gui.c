@@ -73,6 +73,7 @@ static void gui_init_highlighter(void)
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_create_tag(buffer, "instr", "foreground", "#ff0000", NULL);
 	gtk_text_buffer_create_tag(buffer, "regs", "foreground", "#00ff00", NULL);
+	gtk_text_buffer_create_tag(buffer, "warning", "background", "#ff0000", NULL);
 }
 
 void gui_unhighlight(void)
@@ -82,6 +83,15 @@ void gui_unhighlight(void)
 
 	gtk_text_buffer_get_bounds(buffer, &start, &end);
 	gtk_text_buffer_remove_all_tags(buffer, &start, &end);
+}
+
+void gui_unhighlight_name(const char *tag_name)
+{
+	GtkTextIter start, end;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+
+	gtk_text_buffer_get_bounds(buffer, &start, &end);
+	gtk_text_buffer_remove_tag_by_name(buffer, tag_name, &start, &end);
 }
 
 void gui_highlight(u32 column, u32 line, u32 length, const char *tag_name)
@@ -272,6 +282,16 @@ static void gui_activate(GtkApplication *app, gpointer data)
 	gtk_source_view_set_show_line_marks(GTK_SOURCE_VIEW(text_view), TRUE);
 	gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
 
+	// Font
+	GtkCssProvider *provider = gtk_css_provider_new();
+	gtk_css_provider_load_from_data(
+		provider, "textview { font-family: Monospace; font-size: 11pt; }", -1, NULL);
+	gtk_style_context_add_provider(gtk_widget_get_style_context(text_view),
+				       GTK_STYLE_PROVIDER(provider),
+				       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	g_object_unref(provider);
+
+	// Show all widgets!
 	gtk_widget_show_all(window);
 
 	// Only for testing purposes

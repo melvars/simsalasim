@@ -35,6 +35,7 @@ void warnings_add(struct context *ctx, const char *fmt, ...)
 // TODO: Print somewhere else (e.g. next to line)
 void warnings_print(void)
 {
+	gui_unhighlight_name("warning");
 	for (u32 i = 0; i < WARNING_COUNT; i++) {
 		if (!warnings[i].exists)
 			continue;
@@ -42,6 +43,7 @@ void warnings_print(void)
 		/* gui_show_warning(warnings[i].text); */
 		printf("Line %d:%d: %s\n", warnings[i].ctx.line, warnings[i].ctx.column,
 		       warnings[i].text);
+		gui_highlight(warnings[i].ctx.column, warnings[i].ctx.line, 1, "warning");
 	}
 }
 
