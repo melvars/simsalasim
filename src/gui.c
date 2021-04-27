@@ -1,5 +1,4 @@
 #include <def.h>
-#include <gtk/gtk.h>
 #include <gtksourceview/gtksource.h>
 #include <gui.h>
 #include <parser.h>
@@ -131,6 +130,31 @@ void gui_show_info(const char *text)
 	int response = gtk_dialog_run(GTK_DIALOG(info));
 	printf("%d\n", response);
 	gtk_widget_destroy(info);
+}
+
+static gchar *gui_show_tt(GtkSourceMarkAttributes *attributes, GtkSourceMark *mark,
+			  const gchar *message)
+{
+	UNUSED(attributes);
+	UNUSED(mark);
+	return strdup(message);
+}
+
+void gui_add_line_marker(int line_number, const char *message, const char *category,
+			 const char *icon, GdkRGBA rgba)
+{
+	GtkSourceMarkAttributes *attributes = gtk_source_mark_attributes_new();
+	gtk_source_mark_attributes_set_background(attributes, &rgba);
+	gtk_source_mark_attributes_set_icon_name(attributes, icon);
+	gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(text_view), category, attributes, 10);
+
+	GtkTextIter iter;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+	gtk_text_buffer_get_iter_at_line(buffer, &iter, line_number);
+	gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(text_view), category, attributes, 10);
+	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(buffer), message, category, &iter);
+	g_signal_connect(G_OBJECT(attributes), "query-tooltip-text", G_CALLBACK(gui_show_tt),
+			 strdup(message));
 }
 
 static u8 gui_save_file(char *fname, char *fdata)
@@ -299,6 +323,9 @@ static void gui_activate(GtkApplication *app, gpointer data)
 
 	gui_init_highlighter();
 	gui_call_syntax_highlighter();
+
+	GdkRGBA rgba = { 1, 0, 0, 0.3 };
+	gui_add_line_marker(2, "Help", "hc", "dialog-error", rgba);
 }
 
 int gui_init(int argc, char *argv[])
