@@ -72,7 +72,6 @@ static void gui_init_highlighter(void)
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_create_tag(buffer, "instr", "foreground", "#ff0000", NULL);
 	gtk_text_buffer_create_tag(buffer, "regs", "foreground", "#00ff00", NULL);
-	gtk_text_buffer_create_tag(buffer, "warning", "background", "#ff0000", NULL);
 }
 
 void gui_unhighlight(void)
@@ -140,7 +139,7 @@ static gchar *gui_show_tt(GtkSourceMarkAttributes *attributes, GtkSourceMark *ma
 	return strdup(message);
 }
 
-void gui_add_line_marker(int line_number, const char *message, const char *category,
+void gui_add_line_marker(u32 line_number, const char *message, const char *name, const char *category,
 			 const char *icon, GdkRGBA rgba)
 {
 	GtkSourceMarkAttributes *attributes = gtk_source_mark_attributes_new();
@@ -152,9 +151,17 @@ void gui_add_line_marker(int line_number, const char *message, const char *categ
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 	gtk_text_buffer_get_iter_at_line(buffer, &iter, line_number);
 	gtk_source_view_set_mark_attributes(GTK_SOURCE_VIEW(text_view), category, attributes, 10);
-	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(buffer), message, category, &iter);
+	gtk_source_buffer_create_source_mark(GTK_SOURCE_BUFFER(buffer), name, category, &iter);
 	g_signal_connect(G_OBJECT(attributes), "query-tooltip-text", G_CALLBACK(gui_show_tt),
 			 strdup(message));
+}
+
+void gui_remove_line_marker(const char *category) {
+	GtkTextIter start, end;
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+
+	gtk_text_buffer_get_bounds(buffer, &start, &end);
+	gtk_source_buffer_remove_source_marks(GTK_SOURCE_BUFFER(buffer), &start, &end, category);
 }
 
 static u8 gui_save_file(char *fname, char *fdata)
@@ -323,9 +330,6 @@ static void gui_activate(GtkApplication *app, gpointer data)
 
 	gui_init_highlighter();
 	gui_call_syntax_highlighter();
-
-	GdkRGBA rgba = { 1, 0, 0, 0.3 };
-	gui_add_line_marker(2, "Help", "hc", "dialog-error", rgba);
 }
 
 int gui_init(int argc, char *argv[])

@@ -13,6 +13,7 @@ struct warning {
 	u8 exists;
 	struct context ctx;
 	char text[WARNING_LENGTH];
+	char name[8];
 };
 
 static struct warning warnings[WARNING_COUNT] = { 0 };
@@ -32,18 +33,23 @@ void warnings_add(struct context *ctx, const char *fmt, ...)
 	warning_index++;
 }
 
-// TODO: Print somewhere else (e.g. next to line)
+static void warnings_generate_name(u32 i) {
+	static u32 ctr = 0;
+	snprintf(warnings[i].name, 8, "%d", ctr++);
+}
+
 void warnings_print(void)
 {
-	gui_unhighlight_name("warning");
+	gui_remove_line_marker("error");
 	for (u32 i = 0; i < WARNING_COUNT; i++) {
 		if (!warnings[i].exists)
 			continue;
 
-		/* gui_show_warning(warnings[i].text); */
 		printf("Line %d:%d: %s\n", warnings[i].ctx.line, warnings[i].ctx.column,
 		       warnings[i].text);
-		gui_highlight(warnings[i].ctx.column, warnings[i].ctx.line, 1, "warning");
+		warnings_generate_name(i);
+		gui_add_line_marker(warnings[i].ctx.line - 1, warnings[i].name, warnings[i].text, "error",
+				    "dialog-warning", (GdkRGBA){ 1, 0, 0, .3 });
 	}
 }
 
