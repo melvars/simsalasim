@@ -38,9 +38,8 @@ static void syntax_highlight_line(struct pos *pos, char *str, u32 size)
 
 		if (tok.type > INSTR_START && tok.type < INSTR_END)
 			gui_highlight(pos->x, pos->y, tok.length, "instr");
-		else if (tok.type > REGS_START && tok.type < REGS_END) {
+		else if (tok.type > REGS_START && tok.type < REGS_END)
 			gui_highlight(pos->x, pos->y, tok.length, "regs");
-		}
 
 		pos->x += tok.length;
 	}
@@ -48,6 +47,7 @@ static void syntax_highlight_line(struct pos *pos, char *str, u32 size)
 
 void syntax_highlight(char *buf, u32 size)
 {
+	return;
 	struct pos pos = { 0 };
 
 	u32 diff = 0;

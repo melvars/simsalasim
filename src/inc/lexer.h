@@ -6,6 +6,7 @@
 enum token_type {
 	UNKNOWN,
 	NEWLINE,
+	END,
 	SPACE,
 
 	INSTR_START,

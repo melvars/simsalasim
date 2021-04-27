@@ -52,8 +52,8 @@ static void gui_call_parser(void)
 {
 	char *buf = gui_text_buffer();
 
-	if (parse(buf, BUFFER_SIZE))
-		gui_show_info("Compiled successfully!");
+	if (!parse(buf, BUFFER_SIZE)) {
+	} // Oh, parsing failed :( (TODO: Do something?)
 
 	g_free(buf);
 }
@@ -139,8 +139,8 @@ static gchar *gui_show_tt(GtkSourceMarkAttributes *attributes, GtkSourceMark *ma
 	return strdup(message);
 }
 
-void gui_add_line_marker(u32 line_number, const char *message, const char *name, const char *category,
-			 const char *icon, GdkRGBA rgba)
+void gui_add_line_marker(u32 line_number, const char *message, const char *name,
+			 const char *category, const char *icon, GdkRGBA rgba)
 {
 	GtkSourceMarkAttributes *attributes = gtk_source_mark_attributes_new();
 	gtk_source_mark_attributes_set_background(attributes, &rgba);
@@ -156,7 +156,8 @@ void gui_add_line_marker(u32 line_number, const char *message, const char *name,
 			 strdup(message));
 }
 
-void gui_remove_line_marker(const char *category) {
+void gui_remove_line_marker(const char *category)
+{
 	GtkTextIter start, end;
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
 
@@ -242,7 +243,9 @@ static gboolean gui_key_release_handler(GtkWidget *widget, GdkEventKey *event, g
 	UNUSED(event);
 	UNUSED(data);
 
-	gui_call_syntax_highlighter();
+	// TODO: Integrate highlighting into parser?
+	//gui_call_syntax_highlighter();
+	gui_call_parser();
 
 	return FALSE;
 }

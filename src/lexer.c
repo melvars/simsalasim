@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <def.h>
 #include <lexer.h>
 #include <stdio.h>
@@ -16,8 +17,13 @@
 
 void token_print(struct token *tok)
 {
-	if (!tok->length)
+	// Something terrible needs to happen to make this true
+	assert(tok->length || tok->type == END);
+
+	if (tok->type == END) {
+		printf("\\0 (%d)\n", tok->type);
 		return;
+	}
 
 	char swp = tok->start[tok->length];
 	tok->start[tok->length] = 0;
@@ -47,6 +53,9 @@ struct token token_resolve(char *str, u32 size)
 	} else if (str[0] == '\n') {
 		type = NEWLINE;
 		length = 1;
+	} else if (str[0] == '\0') {
+		type = END;
+		length = 0; // Well
 	} else if (str[0] == ' ') {
 		type = SPACE;
 		length = 1;

@@ -31,7 +31,7 @@ static void rom_add(u8 byte)
 static u32 toks_count(struct token *toks)
 {
 	struct token *p = toks;
-	while (p && p->type)
+	while (p && p->type != END && p->type != UNKNOWN && p->type != NEWLINE)
 		p++;
 	return p - toks;
 }
@@ -387,7 +387,11 @@ static u32 parse_line(struct context *ctx, char *str, u32 size)
 			break;
 		}
 
-		if (tok.type == UNKNOWN) {
+		if (tok.type == UNKNOWN)
+			break;
+
+		if (tok.type == END) {
+			ctx->line++;
 			break;
 		}
 
@@ -609,6 +613,7 @@ static u32 parse_line(struct context *ctx, char *str, u32 size)
 	case NUM_END:
 	case REGS_START:
 	case REGS_END:
+	case END:
 		warnings_add(ctx, "Got enum boundary");
 		break;
 	default:
@@ -645,11 +650,16 @@ u8 parse(char *buf, u32 size)
 		u32 len = parse_line(&ctx, buf + i, size - i);
 		i += len;
 		ctx.column += len;
+
+		if (buf[i] == '\0')
+			break;
 	}
 
 	if (warnings_exist()) {
 		warnings_print();
 		return 0;
+	} else {
+		warnings_remove_marks();
 	}
 
 	return 1;

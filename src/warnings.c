@@ -33,14 +33,20 @@ void warnings_add(struct context *ctx, const char *fmt, ...)
 	warning_index++;
 }
 
-static void warnings_generate_name(u32 i) {
+static void warnings_generate_name(u32 i)
+{
 	static u32 ctr = 0;
 	snprintf(warnings[i].name, 8, "%d", ctr++);
 }
 
+void warnings_remove_marks(void)
+{
+	gui_remove_line_marker("warning");
+}
+
 void warnings_print(void)
 {
-	gui_remove_line_marker("error");
+	warnings_remove_marks();
 	for (u32 i = 0; i < WARNING_COUNT; i++) {
 		if (!warnings[i].exists)
 			continue;
@@ -48,8 +54,8 @@ void warnings_print(void)
 		printf("Line %d:%d: %s\n", warnings[i].ctx.line, warnings[i].ctx.column,
 		       warnings[i].text);
 		warnings_generate_name(i);
-		gui_add_line_marker(warnings[i].ctx.line - 1, warnings[i].name, warnings[i].text, "error",
-				    "dialog-warning", (GdkRGBA){ 1, 0, 0, .3 });
+		gui_add_line_marker(warnings[i].ctx.line - 1, warnings[i].text, warnings[i].name,
+				    "warning", "dialog-warning", (GdkRGBA){ 1, 0, 0, .3 });
 	}
 }
 
@@ -60,6 +66,8 @@ u8 warnings_exist(void)
 
 void warnings_clear(void)
 {
-	if (warning_index)
+	if (warnings_exist()) {
 		memset(warnings, 0, sizeof(warnings));
+		warning_index = 0;
+	}
 }
