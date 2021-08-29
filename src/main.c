@@ -1,18 +1,16 @@
-#include <gui.h>
-#include <stdio.h>
+#include <cpu.h>
 #include <stdlib.h>
-#include <string.h>
-
-static void print_help(void)
-{
-	printf("Help\n");
-	exit(0);
-}
 
 int main(int argc, char *argv[])
 {
-	if (argc == 2 && (strcmp(argv[1], "--help") == 0))
-		print_help();
+	(void)argc;
+	(void)argv;
 
-	return gui_init(argc, argv);
+	int cpu = cpu_init();
+	if (cpu < 0)
+		exit(1);
+	cpu_run();
+	cpu_destroy();
+
+	return 0;
 }
