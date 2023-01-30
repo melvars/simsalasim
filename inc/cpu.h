@@ -6,9 +6,10 @@
 #include <err.h>
 
 struct cpu_interface {
-	void (*reg_names)(const char *names, int n);
+	void (*reg_names)(const char *names[], int n);
 	void (*reg_update)(int reg, uint64_t val);
-	void (*instr_done)(char *instr);
+	void (*instr_push)(char *instr);
+	void (*instr_pop)(void);
 };
 
 enum registers {

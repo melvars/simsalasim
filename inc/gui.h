@@ -9,9 +9,10 @@ struct gui_interface {
 	err (*step_prev)(void);
 };
 
-void gui_reg_names(const char *names, int n);
+void gui_reg_names(const char *names[], int n);
 void gui_reg_update(int reg, uint64_t value);
-void gui_instr_done(char *instr);
+void gui_instr_push(char *instr);
+void gui_instr_pop(void);
 
 void gui_register_interface(struct gui_interface *gui);
 void gui_init(void);

@@ -104,6 +104,13 @@ static err (*neg_instructions[256])(void);
 static uint64_t regs[REGISTERS_COUNT] = { 0 };
 static struct rip_history *rip_history;
 
+static char instruction_response_factory[256] = { 0 };
+
+static const char *register_names[REGISTERS_COUNT] = {
+	"RAX", "RCX", "RDX", "RBX", "RSP", "RBP", "RSI", "RDI",
+	"R8",  "R9",  "R10", "R11", "R12", "R13", "R14", "R15",
+};
+
 static void print_state(void)
 {
 	logln("rip=%x, rax=%x, rcx=%x, rdx=%x, rbx=%x, rsp=%x, rbp=%x, rsi=%x, rdi=%x,\nr8=%x, r9=%x, r10=%x, r11=%x, r12=%x, r13=%x, r14=%x, r15=%x",
@@ -129,6 +136,7 @@ static err pos_opcode(void)
 	uint8_t op = U8();
 	// TODO: is_*, j*
 	if (op == 0x05) {
+		sprintf(instruction_response_factory, "syscall");
 		return linux_call();
 	}
 	return ERR;
@@ -137,7 +145,10 @@ static err pos_opcode(void)
 static err pos_mov_r32_rm32(void)
 {
 	uint8_t modrm = U8();
-	SET_R32(REG(), GET_RM32());
+	uint8_t reg = REG();
+	uint32_t val = GET_RM32();
+	sprintf(instruction_response_factory, "mov %s, %x", register_names[reg],
+		val);
 	return OK;
 }
 
@@ -145,12 +156,16 @@ static err pos_mov_r32_imm32(void)
 {
 	rip--;
 	uint8_t reg = U8() - 0xb8;
-	SET_R32(reg, U32());
+	uint32_t val = U32();
+	SET_R32(reg, val);
+	sprintf(instruction_response_factory, "mov %s, %#x",
+		register_names[reg], val);
 	return OK;
 }
 
 static err pos_nop(void)
 {
+	sprintf(instruction_response_factory, "nop");
 	return OK;
 }
 
@@ -167,6 +182,7 @@ static err pos_int(void)
 
 static void initialize(void)
 {
+	interface->reg_names(register_names, REGISTERS_COUNT);
 	for (int i = 0; i < 256; i++) {
 		pos_instructions[i] = pos_unknown_instruction;
 		neg_instructions[i] = neg_unknown_instruction;
@@ -220,6 +236,7 @@ err cpu_next(void)
 		return END;
 	logln("%x", instr);
 	err ret = pos_instructions[instr]();
+	interface->instr_push(instruction_response_factory);
 	print_state();
 
 	struct rip_history *next = malloc(sizeof(*next));
@@ -239,6 +256,7 @@ err cpu_prev(void)
 	if (!instr)
 		return ERR;
 	err ret = neg_instructions[instr]();
+	interface->instr_pop();
 	print_state();
 
 	free(rip_history);

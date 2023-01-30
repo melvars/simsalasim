@@ -6,7 +6,8 @@
 static struct cpu_interface cpu = {
 	.reg_names = gui_reg_names,
 	.reg_update = gui_reg_update,
-	.instr_done = gui_instr_done,
+	.instr_push = gui_instr_push,
+	.instr_pop = gui_instr_pop,
 };
 
 static struct gui_interface gui = {
