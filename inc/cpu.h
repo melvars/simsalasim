@@ -3,8 +3,13 @@
 
 #include <stdint.h>
 
-#define ERR 0
-#define OK 1
+#include <err.h>
+
+struct cpu_interface {
+	void (*reg_names)(const char *names, int n);
+	void (*reg_update)(int reg, uint64_t val);
+	void (*instr_done)(char *instr);
+};
 
 enum registers {
 	RAX,
@@ -50,8 +55,13 @@ enum registers {
 	DIH = DIL + 4
 };
 
+err cpu_next(void);
+err cpu_prev(void);
+
 void *cpu_get_reg(uint8_t reg);
 void cpu_set_reg(uint8_t reg, uint64_t val);
+void cpu_register_interface(struct cpu_interface *cpu);
 void cpu_exec(const char *path);
+void cpu_destroy(void);
 
 #endif

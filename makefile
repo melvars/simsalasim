@@ -14,23 +14,26 @@ ASMTESTSOBJS = $(patsubst $(TESTSDIR)/asm/%.asm, $(BUILDDIR)/test_asm_%.o, $(ASM
 CC = gcc
 AS = nasm
 LD = ld
-WARNINGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wwrite-strings -Wredundant-decls -Wnested-externs -Wformat=2 -Wmissing-declarations -Wstrict-prototypes -Wmissing-prototypes -Wcast-qual -Wswitch-default -Wswitch-enum -Wlogical-op -Wunreachable-code -Wundef -Wold-style-definition -Wvla -pedantic -Wno-pointer-arith
-DEBUG = -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong -s
-CFLAGS = -Ofast $(WARNINGS) -I$(INCDIR) $(DEBUG)
+WARNINGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wwrite-strings -Wredundant-decls -Wnested-externs -Wformat=2 -Wmissing-declarations -Wstrict-prototypes -Wmissing-prototypes -Wcast-qual -Wswitch-default -Wswitch-enum -Wunreachable-code -Wundef -Wold-style-definition -Wvla -pedantic -Wno-pointer-arith
+DEBUG = -fsanitize=undefined,address,leak -fstack-protector-strong -s -Og
+CFLAGS = -Ofast $(shell pkg-config --cflags --libs gtk4) $(WARNINGS) -I$(INCDIR) #$(DEBUG)
 ASFLAGS = -O2 -f elf64 # TODO: Use -O0
 
-all: out tests
+all: $(BUILDDIR)/out tests
 
-out: $(OBJS)
-	@$(CC) -o $(BUILDDIR)/out $(CFLAGS) $^
+$(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
+	@$(CC) -c $< $(CFLAGS) -o $@
+
+$(BUILDDIR)/out: $(OBJS)
+	@$(CC) $^ $(CFLAGS) -o $@
 
 tests: $(CTESTSOBJS) $(ASMTESTSOBJS)
 
-$(BUILDDIR)/test_asm_%.o: $(TESTSDIR)/asm/%.asm
+$(ASMTESTSOBJS): $(ASMTESTS)
 	@$(AS) $(ASFLAGS) $< -o $@
 	@$(LD) $@ -o $(basename $@)
 
-$(BUILDDIR)/test_c_%.o: $(TESTSDIR)/c/%.c
+$(CTESTSOBJS): $(CTESTS)
 	@$(CC) $< -o $(basename $@)
 
 clean:
@@ -40,7 +43,7 @@ run: all sync
 	@$(BUILDDIR)/out $(BUILDDIR)/test_asm_yay
 
 sync:
-	@make --always-make --dry-run | grep -wE 'gcc|g\+\+' | grep -w '\-c' | jq -nR '[inputs|{directory:".", command:., file: match(" [^ ]+$$").string[1:]}]' >compile_commands.json
+	@$(MAKE) $(BUILDDIR)/out --always-make --dry-run | grep -wE 'gcc|g\+\+' | grep -w '\-c' | jq -nR '[inputs|{directory:".", command:., file: match(" [^ ]+$$").string[1:]}]' >compile_commands.json
 	@ctags -R --exclude=.git --exclude=build .
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c

@@ -9,7 +9,8 @@
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void __logln(const char *func, const char *format, ...)
+__attribute__((__format__(__printf__, 2, 0))) void
+__logln(const char *func, const char *format, ...)
 {
 	pthread_mutex_lock(&mutex);
 
@@ -25,7 +26,8 @@ void __logln(const char *func, const char *format, ...)
 	pthread_mutex_unlock(&mutex);
 }
 
-void __errln(const char *func, const char *format, ...)
+__attribute__((__format__(__printf__, 2, 0))) void
+__errln(const char *func, const char *format, ...)
 {
 	pthread_mutex_lock(&mutex);
 

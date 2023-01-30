@@ -46,7 +46,7 @@ void *mem_phys(vaddr virt)
 	return &zero;
 }
 
-void mem_free_all(void)
+void mem_destroy(void)
 {
 	struct memory *iterator = head;
 	while (iterator) {

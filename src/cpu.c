@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <cpu.h>
 #include <load.h>
 #include <log.h>
@@ -89,10 +91,18 @@
 #define GET_RM8() (MOD() == 3 ? GET_R8(RM()) : *(uint8_t *)mem_phys(ADDR()))
 #define GET_RM32() (MOD() == 3 ? GET_R32(RM()) : *(uint32_t *)mem_phys(ADDR()))
 
+static struct cpu_interface *interface;
+
+struct rip_history {
+	uint64_t rip;
+	struct rip_history *prev;
+};
+
 static uint64_t rip = 0;
-static int (*pos_instructions[256])(void);
-static int (*neg_instructions[256])(void);
+static err (*pos_instructions[256])(void);
+static err (*neg_instructions[256])(void);
 static uint64_t regs[REGISTERS_COUNT] = { 0 };
+static struct rip_history *rip_history;
 
 static void print_state(void)
 {
@@ -102,19 +112,19 @@ static void print_state(void)
 	      regs[R10], regs[R11], regs[R12], regs[R13], regs[R14], regs[R15]);
 }
 
-static int pos_unknown_instruction(void)
+static err pos_unknown_instruction(void)
 {
 	errln("unknown positive instruction at rip=%d", rip);
 	return ERR;
 }
 
-static int neg_unknown_instruction(void)
+static err neg_unknown_instruction(void)
 {
 	errln("unknown negative instruction at rip=%d", rip);
 	return ERR;
 }
 
-static int pos_opcode(void)
+static err pos_opcode(void)
 {
 	uint8_t op = U8();
 	// TODO: is_*, j*
@@ -124,14 +134,14 @@ static int pos_opcode(void)
 	return ERR;
 }
 
-static int pos_mov_r32_rm32(void)
+static err pos_mov_r32_rm32(void)
 {
 	uint8_t modrm = U8();
 	SET_R32(REG(), GET_RM32());
 	return OK;
 }
 
-static int pos_mov_r32_imm32(void)
+static err pos_mov_r32_imm32(void)
 {
 	rip--;
 	uint8_t reg = U8() - 0xb8;
@@ -139,12 +149,12 @@ static int pos_mov_r32_imm32(void)
 	return OK;
 }
 
-static int pos_nop(void)
+static err pos_nop(void)
 {
 	return OK;
 }
 
-static int pos_int(void)
+static err pos_int(void)
 {
 	uint8_t op = U8();
 	if (op == 0x80) {
@@ -182,6 +192,11 @@ void cpu_set_reg(uint8_t reg, uint64_t val)
 	regs[reg] = val;
 }
 
+void cpu_register_interface(struct cpu_interface *cpu)
+{
+	interface = cpu;
+}
+
 void cpu_exec(const char *path)
 {
 	initialize();
@@ -193,14 +208,49 @@ void cpu_exec(const char *path)
 	}
 	rip = addr;
 
-	int ret = OK;
-	while (ret) {
-		uint8_t instr = U8();
-		if (!instr)
-			return;
-		logln("%x", instr);
-		ret = pos_instructions[instr]();
-		print_state();
+	rip_history = malloc(sizeof(*rip_history));
+	rip_history->rip = rip;
+	rip_history->prev = 0;
+}
+
+err cpu_next(void)
+{
+	uint8_t instr = U8();
+	if (!instr)
+		return END;
+	logln("%x", instr);
+	err ret = pos_instructions[instr]();
+	print_state();
+
+	struct rip_history *next = malloc(sizeof(*next));
+	next->rip = rip;
+	next->prev = rip_history;
+	rip_history = next;
+	return ret;
+}
+
+err cpu_prev(void)
+{
+	struct rip_history *prev = rip_history->prev;
+	if (!prev)
+		return END;
+	rip = prev->rip;
+	uint8_t instr = U8();
+	if (!instr)
+		return ERR;
+	err ret = neg_instructions[instr]();
+	print_state();
+
+	free(rip_history);
+	rip_history = prev;
+	return ret;
+}
+
+void cpu_destroy(void)
+{
+	while (rip_history) {
+		struct rip_history *temp = rip_history->prev;
+		free(rip_history);
+		rip_history = temp;
 	}
-	errln("error while executing");
 }
